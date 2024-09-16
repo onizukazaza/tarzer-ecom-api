@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const TokenBlacklist = require('../models/TokenBlacklist')
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     const token = req.header('Authorization') && req.header('Authorization').startsWith('Bearer ') 
         ? req.header('Authorization').split(' ')[1] 
         : null;
@@ -10,6 +11,10 @@ const authenticate = (req, res, next) => {
     }
 
     try {
+        const blacklistedToken = await TokenBlacklist.findOne({ where: { token } });
+        if(blacklistedToken) { 
+        return res.status(401).json({ message: 'Access denied' });
+    }
         const verified = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verified; 
         console.log(req.user); 

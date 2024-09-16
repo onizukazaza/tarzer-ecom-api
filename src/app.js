@@ -6,7 +6,13 @@ const sequelize = require("./config/database");
 const routes = require("./routes");
 const errorHandler = require("./middleware/errorHandler");
 const productRoutes = require("./routes/product");
-
+const addressRoutes = require("./routes/address");
+const User = require('./models/user');
+const Product = require('./models/product');
+const ProductImage = require('./models/productImage');
+const ProductVariation = require('./models/productvariation');
+const ProductVariationOption = require('./models/productvariationoption');
+const Address = require('./models/useraddress');
 
 const app = express();
 
@@ -16,6 +22,8 @@ app.use(cors());
 app.use(express.json());
 // Routes
 app.use("/products", productRoutes);
+app.use("/user", routes);
+app.use("/addresses", addressRoutes);
 app.use("/", routes);
 
 (async () => {
