@@ -45,6 +45,17 @@ An ecommerce platform built with **Node.js**, **Express**, and **MySQL**. This p
 
 ## 🗂️ Project Structure
 
+## 🛠️ Database Migration
+
+This project uses **Sequelize** as an ORM, which allows automatic database migration. You can run migrations easily using the Sequelize CLI.
+
+### 🔄 Running Migrations
+
+1. Make sure your database is set up correctly in the `.env` file.
+2. Run the following command to migrate the database:
+
+   ```bash
+   npx sequelize-cli db:migrate
 
 ## 🚀 Getting Started
 
