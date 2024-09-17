@@ -45,3 +45,19 @@ An ecommerce platform built with **Node.js**, **Express**, and **MySQL**. This p
 
 ## 🗂️ Project Structure
 
+
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (>=14.x)
+- MySQL (with Docker or XAMPP)
+- Docker (optional, but recommended)
+
+### 🛠️ Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/ecommerce-project.git
+
+
