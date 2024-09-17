@@ -45,7 +45,15 @@ An ecommerce platform built with **Node.js**, **Express**, and **MySQL**. This p
 
 ## 🗂️ Project Structure
 
-
+📂 /src
+├── 📁 config/ # ⚙️ Database configuration and environment variables
+├── 📁 controllers/ # 🧠 Application logic for handling requests
+├── 📁 models/ # 🗃️ Sequelize models for data representation (User, Product, etc.)
+├── 📁 routes/ # 🛤️ API route definitions
+├── 📁 middleware/ # 🛡️ Authentication and authorization handlers
+├── 📁 utils/ # 🔧 Utility functions used across the app
+├── 📂 public/ # 🌐 Public assets such as uploaded images
+└── 📄 app.js # 🚀 Main entry point of the application
 
 ## 🚀 Getting Started
 
