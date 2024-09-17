@@ -67,7 +67,8 @@ This project uses **Sequelize** as an ORM, which allows automatic database migra
 ### 🛠️ Installation
 
 1. Clone the repository:
-   ```bash
+
+    ```bash
    git clone https://github.com/your-username/ecommerce-project.git
 
 
