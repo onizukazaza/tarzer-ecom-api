@@ -35,7 +35,7 @@ exports.addProduct = async (req, res) => {
       description,
       sellerId,
     });
-
+   
     const images = req.files.map((file) => ({
       image_url: file.path,
       productId: product.id,
@@ -46,6 +46,8 @@ exports.addProduct = async (req, res) => {
 
     const mainImage = createdImages[0];
     await product.update({ mainImageId: mainImage.id });
+
+    await mainImage.update({ isPrimary: true });
 
     if (parsedVariations && Array.isArray(parsedVariations)) {
       await Promise.all(

@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { uploadProfileImage } = require('../middleware/uploadProfileImages');
 
 exports.register = async (req, res) => {
     const { username, email, password } = req.body;
@@ -17,7 +18,13 @@ exports.register = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, email, password: hashedPassword });
+        const defaultProfileImage = 'public/upload/profile-os/cat.jpg'; 
+        const user = await User.create({ 
+            username, 
+            email, 
+            password: hashedPassword,
+            profileImage: defaultProfileImage,
+         });
 
         user.password = undefined; // hide password from response
 
@@ -57,29 +64,6 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
-
-// exports.updateProfileImage = async (req, res) => {
-//     const userId = req.user.id; 
-//     const profileImage = req.file ? req.file.path : null;
-
-//     try {
-//         const user = await User.findByPk(userId);
-//         if (!user) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-
-//         user.profileImage = profileImage; 
-//         await user.save();
-
-//         res.status(200).json(user); 
-//     } catch (err) {
-//         console.error('Error during updating profile image:', err);
-//         res.status(500).json({ message: 'Server error', error: err.message });
-//     }
-// };
-
-
-
 
 
 exports.updateRole = async (req, res) => {

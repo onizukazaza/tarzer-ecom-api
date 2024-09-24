@@ -35,6 +35,7 @@ const ProductVariationOption = sequelize.define(
 ProductVariationOption.belongsTo(ProductVariation, {
   foreignKey: "productVariationId",
   as: "productVariation",
+  onDelete: "CASCADE",
 });
 
 
