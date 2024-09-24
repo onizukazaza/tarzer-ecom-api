@@ -13,6 +13,18 @@ const ProductImage = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    ProductId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "products",
+        key: "id",
+      },
+    },
+    isPrimary: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     timestamps: true,
@@ -20,5 +32,7 @@ const ProductImage = sequelize.define(
     freezeTableName: true,
   }
 );
+
+
 
 module.exports = ProductImage;

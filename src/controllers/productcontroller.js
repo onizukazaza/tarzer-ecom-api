@@ -6,7 +6,7 @@ const sequelize = require("../config/database");
 const { Op } = require("sequelize");
 
 exports.addProduct = async (req, res) => {
-  const { name, price, description, variations } = req.body; // รับ variations จาก body
+  const { name, price, description, variations } = req.body;
 
   if (!req.user || !req.user.id) {
     return res.status(400).json({ message: "User not authenticated" });
@@ -21,6 +21,13 @@ exports.addProduct = async (req, res) => {
   const sellerId = req.user.id;
 
   try {
+    if (!req.files || req.files.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Product must have at least one image" });
+    }
+
+    const parsedVariations = JSON.parse(variations);
 
     const product = await Product.create({
       name,
@@ -29,30 +36,27 @@ exports.addProduct = async (req, res) => {
       sellerId,
     });
 
+    const images = req.files.map((file) => ({
+      image_url: file.path,
+      productId: product.id,
+    }));
+    const createdImages = await ProductImage.bulkCreate(images, {
+      fields: ["image_url", "productId"],
+    });
 
-    if (req.files && req.files.length > 0) {
-      const images = req.files.map((file) => ({
-        image_url: file.path,
-        productId: product.id,
-      }));
-      const createdImage = await ProductImage.bulkCreate(images, {
-        fields: ["image_url", "productId"],
-      });
-      const mainImage = createdImage[0];
-      await product.update({ mainImageId: mainImage.id });
-    }
+    const mainImage = createdImages[0];
+    await product.update({ mainImageId: mainImage.id });
 
-    // ตรวจสอบและสร้าง Product Variations
-    if (variations && variations.length > 0) {
-      const productVariations = await Promise.all(
-        variations.map(async (variation) => {
+    if (parsedVariations && Array.isArray(parsedVariations)) {
+      await Promise.all(
+        parsedVariations.map(async (variation) => {
           const productVariation = await ProductVariation.create({
             variationType: variation.type,
             variationValue: variation.value,
             productId: product.id,
           });
 
-          if (variation.options && variation.options.length > 0) {
+          if (variation.options && Array.isArray(variation.options)) {
             const variationOptions = variation.options.map((option) => ({
               productVariationId: productVariation.id,
               value: option,
@@ -78,7 +82,7 @@ exports.deleteProduct = async (req, res) => {
   if (!req.user || !req.user.id) {
     return res.status(400).json({ message: "User not authenticated" });
   }
-  if (!req.user.role === "admin" && req.user.role !== "seller") {
+  if (req.user.role === "admin" && req.user.role !== "seller") {
     return res
       .status(403)
       .json({ message: "Access denied: Insufficient role" });
@@ -86,6 +90,28 @@ exports.deleteProduct = async (req, res) => {
 
   const transaction = await sequelize.transaction();
   try {
+    const product = await Product.findOne({ where: { id } });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (product.sellerId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Access denied: You do not own this product" });
+    }
+
+    const productImages = await ProductImage.findAll({
+      where: { productId: id },
+    });
+    if (productImages.length > 0) {
+      productImages.forEach((image) => {
+        const fs = require("fs");
+        fs.unlinkSync(image.image_url);
+      });
+      await ProductImage.destroy({ where: { productId: id } });
+    }
+
     await ProductVariationOption.destroy({
       where: {
         productVariationId: {
@@ -142,7 +168,7 @@ exports.getProductById = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-  const { name, price, description , variations } = req.body;
+  const { name, price, description, variations } = req.body;
   const { productId } = req.params;
 
   if (!req.user || !req.user.id) {
@@ -155,38 +181,45 @@ exports.updateProduct = async (req, res) => {
       .json({ message: "Access denied: Insufficient role" });
   }
 
-
   try {
     const product = await Product.findOne({ where: { id: productId } });
     if (!product) {
-      return res.status(404).json({ message: "Product not found in your inventory" });
+      return res
+        .status(404)
+        .json({ message: "Product not found in your inventory" });
     }
 
     if (product.sellerId !== req.user.id && req.user.role !== "admin") {
-        return res.status(403).json({ message: "Product not found in your inventory" });
-      }
-  
+      return res
+        .status(403)
+        .json({ message: "Product not found in your inventory" });
+    }
 
     await product.update({ name, price, description });
 
-    // if(req.file && req.file.length > 0){
-    //     const image = req.file.map(file =>
+    if (req.files && req.files.length > 0) {
+      const imageUrls = req.files.map(file => file.path)
+
+      await product.update({imageUrl: iamgeUrls})
+    }
 
     if (variations && variations.length > 0) {
+      
       await ProductVariation.destroy({ where: { productId } });
 
-      const productVariations = await Promise.all(
+
+        await Promise.all(
         variations.map(async (variation) => {
           const productVariation = await ProductVariation.create({
             variationType: variation.type,
             variationValue: variation.value,
-            productId
+            productId,
           });
 
           if (variation.options && variation.options.length > 0) {
             const variationOptions = variation.options.map((option) => ({
               productVariationId: productVariation.id,
-              value: option
+              value: option,
             }));
             await ProductVariationOption.bulkCreate(variationOptions);
           }
@@ -197,5 +230,48 @@ exports.updateProduct = async (req, res) => {
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ message: "Server error while updating product" });
+  }
+};
+
+exports.addProductImage = async (req, res) => {
+  const { productId } = req.params;
+
+  if (!req.user || !req.user.id) {
+    return res.status(400).json({ message: "User not authenticated" });
+  }
+
+  if (req.user.role !== "admin" && req.user.role !== "seller") {
+    return res
+      .status(403)
+      .json({ message: "Access denied: Insufficient role" });
+  }
+
+  try {
+    const existingImages = await ProductImage.findAll({
+      where: { ProductId: productId },
+    });
+
+    if (existingImages.length + req.files.length >= 5) {
+      return res
+        .status(400)
+        .json({ message: "Cannot add more than 5 images to a product" });
+    }
+    const productImages = await Promise.all(
+      req.files.map((file) =>
+        ProductImage.create({
+          image_url: file.path,
+          ProductId: productId,
+          isPrimary: false,
+        })
+      )
+    );
+    res
+      .status(201)
+      .json({ message: "Product image added succesfully", productImages });
+  } catch (error) {
+    console.error("Error adding product image:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while adding product image" });
   }
 };

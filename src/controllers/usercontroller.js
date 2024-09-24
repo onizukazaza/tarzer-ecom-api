@@ -58,25 +58,25 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.updateProfileImage = async (req, res) => {
-    const userId = req.user.id; 
-    const profileImage = req.file ? req.file.path : null;
+// exports.updateProfileImage = async (req, res) => {
+//     const userId = req.user.id; 
+//     const profileImage = req.file ? req.file.path : null;
 
-    try {
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//     try {
+//         const user = await User.findByPk(userId);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        user.profileImage = profileImage; 
-        await user.save();
+//         user.profileImage = profileImage; 
+//         await user.save();
 
-        res.status(200).json(user); 
-    } catch (err) {
-        console.error('Error during updating profile image:', err);
-        res.status(500).json({ message: 'Server error', error: err.message });
-    }
-};
+//         res.status(200).json(user); 
+//     } catch (err) {
+//         console.error('Error during updating profile image:', err);
+//         res.status(500).json({ message: 'Server error', error: err.message });
+//     }
+// };
 
 
 

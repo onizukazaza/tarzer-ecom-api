@@ -32,14 +32,7 @@ const Product = sequelize.define(
         key: "id",
       },
     },
-    mainImageId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: ProductImage,
-        key: "id",
-      },
-    },
+
   },
   {
     timestamps: true,
@@ -48,12 +41,16 @@ const Product = sequelize.define(
   }
 );
 
+Product.hasMany(ProductImage, {
+  foreignKey: 'productId',
+  as: 'images',
+});
 
 Product.hasMany(ProductVariation, {
   foreignKey: 'productId',
   as: 'variations',
 });
 Product.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-Product.belongsTo(ProductImage, { foreignKey: 'mainImageId', as: 'mainImage' });
+
 
 module.exports = Product;

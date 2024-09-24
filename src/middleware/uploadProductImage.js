@@ -1,40 +1,34 @@
-const multer = require('multer');
+const multer = require('multer'); 
 const path = require('path');
-
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/uploads/');
+        cb(null, 'public/products/');
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
     }
 });
 
+const fillerFilter = (req, file, cb) => {
+    const allowedMimeTypes = /jpeg|jpg|png/;
+    const extname = allowedMimeTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.test(file.mimetype);
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, 
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Error: File type not supported'));
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb(new Error("Only JPEG, JPG, and PNG files are allowed!"), false);
     }
-});
-
-
-const uploadProductImages = (req, res, next) => {
-    upload.array('productImages', 3)(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ message: err.message });
-        }
-        next();
-    });
 };
 
-module.exports = uploadProductImages;
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit 
+    fileFilter: fillerFilter 
+});
+
+
+module.exports = upload.array('productimages', 5);

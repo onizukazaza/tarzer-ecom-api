@@ -3,13 +3,13 @@ const router = express.Router()
 const usercontroller = require('../controllers/usercontroller');
 const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
-const uploadProfileImage = require('../middleware/uploadProfileImage');
+// const uploadProfileImage = require('../middleware/uploadProductImage');
 const TokenBlacklist = require('../models/TokenBlacklist');
 
 router.post('/register', usercontroller.register)
 router.post('/login', usercontroller.login)
 router.patch('/:id/role', authenticate, authorize(['admin']), usercontroller.updateRole)
-router.patch('/profile-image', authenticate, uploadProfileImage, usercontroller.updateProfileImage);
+// router.patch('/profile-image', authenticate, uploadProfileImage, usercontroller.updateProfileImage);
 
 router.get('/protected', authenticate, (req, res) => {
     res.json({ message: 'This is a protected route', user: req.user });
