@@ -11,7 +11,7 @@ An ecommerce platform built with **Node.js**, **Express**, and **MySQL**. This p
   
 - 🛍️ **Product Management:**
   - Admin and sellers can add, edit, or delete products.
-  - Support for multiple images per product (up to 3).
+  - Support for multiple images per product (up to 5).
   - Product variations (e.g., color, size) supported.
   
 - 🛒 **Shopping Cart:**
