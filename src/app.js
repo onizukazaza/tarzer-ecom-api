@@ -13,6 +13,7 @@ const ProductImage = require('./models/productImage');
 const ProductVariation = require('./models/productvariation');
 const ProductVariationOption = require('./models/productvariationoption');
 const Address = require('./models/useraddress');
+const Stock = require('./models/stock');
 
 const app = express();
 

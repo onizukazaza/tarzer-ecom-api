@@ -2,6 +2,7 @@ const Product = require("../models/product");
 const ProductImage = require("../models/productImage");
 const ProductVariation = require("../models/productvariation");
 const ProductVariationOption = require("../models/productvariationoption");
+const Stock = require("../models/stock");
 const sequelize = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -46,32 +47,53 @@ exports.addProduct = async (req, res) => {
 
     const mainImage = createdImages[0];
     await product.update({ mainImageId: mainImage.id });
-
     await mainImage.update({ isPrimary: true });
 
     if (parsedVariations && Array.isArray(parsedVariations)) {
       await Promise.all(
         parsedVariations.map(async (variation) => {
+
+          if (!variation.price) {
+            return res.status(400).json({ message: "Variation price must be provided." });
+          }
+
           const productVariation = await ProductVariation.create({
             variationType: variation.type,
             variationValue: variation.value,
             productId: product.id,
+            variationPrice: variation.price,
           });
 
-          if (variation.options && Array.isArray(variation.options)) {
-            const variationOptions = variation.options.map((option) => ({
-              productVariationId: productVariation.id,
-              value: option,
-            }));
-            await ProductVariationOption.bulkCreate(variationOptions);
+          const stockQuantity = variation.quantity || 0;
+          let variationOptions = [];
+
+          if (variation.options && Array.isArray(variation.options) && variation.options.length > 0) {
+            variationOptions = await ProductVariationOption.bulkCreate(
+              variation.options.map((option) => ({
+                productVariationId: productVariation.id,
+                value: option,
+              }))
+            );
           }
+
+          if (variationOptions.length === 0) {
+            return res.status(400).json({ message: "At least one product variation option must be provided." });
+          }
+
+          const productVariationOptionId = variationOptions[0].id;
+
+          await Stock.create({
+            productId: product.id,
+            quantity: stockQuantity,
+            ProductVariationOptionId: productVariationOptionId,
+          })
 
           return productVariation;
         })
       );
     }
 
-    res.status(201).json(product);
+    res.status(201).json({product});
   } catch (err) {
     console.error("Error adding product:", err);
     res.status(500).json({ message: "Server error while adding product" });
@@ -97,7 +119,7 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.sellerId !== req.user.id) {
+    if (product.sellerId !== req.user.id && req.user.role!== "admin") {
       return res
         .status(403)
         .json({ message: "Access denied: You do not own this product" });
@@ -109,9 +131,11 @@ exports.deleteProduct = async (req, res) => {
     if (productImages.length > 0) {
       productImages.forEach((image) => {
         const fs = require("fs");
+        if(fs.existsSync(image.image_url)){
         fs.unlinkSync(image.image_url);
+        }
       });
-      await ProductImage.destroy({ where: { productId: id } });
+      await ProductImage.destroy({ where: { productId: id }, transaction});
     }
 
     await ProductVariationOption.destroy({
@@ -146,13 +170,43 @@ exports.deleteProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.findAll({
+      include: [
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['imageUrl'],
+        },
+        {
+          model: ProductVariation,
+          as: 'variations',
+          include: [
+            {
+              model: ProductVariationOption,
+              as: 'options',
+              include: [
+                {
+                  model: Stock,
+                  as: 'stock',
+                  attributes: ['quantity'],
+                }
+              ],
+              attributes: ['value'],
+            }
+          ],
+          attributes: ['variationType', 'variationValue', 'variationPrice'],
+        }
+      ],
+      attributes: ['id', 'name', 'price', 'description', 'sellerId'],
+    });
+
     res.status(200).json(products);
   } catch (err) {
     console.error("Error fetching products:", err);
     res.status(500).json({ message: "Server error while fetching products" });
   }
 };
+
 
 exports.getProductById = async (req, res) => {
   const { id } = req.params;
@@ -201,8 +255,7 @@ exports.updateProduct = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       const imageUrls = req.files.map(file => file.path)
-
-      await product.update({imageUrl: iamgeUrls})
+      await product.update({imageUrl: imageUrls})
     }
 
     if (variations && variations.length > 0) {
@@ -216,14 +269,26 @@ exports.updateProduct = async (req, res) => {
             variationType: variation.type,
             variationValue: variation.value,
             productId,
+            variationPrice: variation.price,
           });
 
           if (variation.options && variation.options.length > 0) {
             const variationOptions = variation.options.map((option) => ({
               productVariationId: productVariation.id,
-              value: option,
+              value: option.value,
             }));
-            await ProductVariationOption.bulkCreate(variationOptions);
+            const createOptions = await ProductVariationOption.bulkCreate(variationOptions);
+
+            if (variation.options && variation.options.length > 0) {
+              await Promise.all(
+                createOptions.map(async (option , index) => {
+                  await Stock.upsert({
+                    ProductVariationOptionId: option.id,
+                    quantity: variation.options[index].stock || 0,
+                  });
+                })
+              )
+            }
           }
         })
       );

@@ -26,6 +26,10 @@ const ProductVariation = sequelize.define(
         key: 'id',
       },
     },
+    variationPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
   },
   {
     timestamps: true,
