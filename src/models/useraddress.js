@@ -53,9 +53,13 @@ const Address = sequelize.define(
   }
 );
 
-async () => {
+User.hasMany(Address, { foreignKey: "userId", as: "addresses" });
+Address.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+(async () => {
   await Address.sync();
   console.log("Addresses table created");
-};
+})();
+
 
 module.exports = Address;

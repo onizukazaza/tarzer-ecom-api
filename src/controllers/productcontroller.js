@@ -169,36 +169,38 @@ exports.deleteProduct = async (req, res) => {
 };
 
 exports.getAllProducts = async (req, res) => {
+  const { search } = req.query;
   try {
-    const products = await Product.findAll({
-      include: [
-        {
-          model: ProductImage,
-          as: 'images',
-          attributes: ['imageUrl'],
-        },
-        {
-          model: ProductVariation,
-          as: 'variations',
-          include: [
-            {
-              model: ProductVariationOption,
-              as: 'options',
-              include: [
-                {
-                  model: Stock,
-                  as: 'stock',
-                  attributes: ['quantity'],
-                }
-              ],
-              attributes: ['value'],
-            }
-          ],
-          attributes: ['variationType', 'variationValue', 'variationPrice'],
-        }
-      ],
-      attributes: ['id', 'name', 'price', 'description', 'sellerId'],
-    });
+   const products = await Product.findAll({
+    where: search ? { name: { [Op.like]: `%${search}%` } } : {}, 
+    include: [
+      {
+        model: ProductImage,
+        as: 'images',
+        attributes: ['image_url'],
+      },
+      {
+        model: ProductVariation,
+        as: 'productVariations',
+        include: [
+          {
+            model: ProductVariationOption,
+            as: 'productVariationOptions',
+            include: [
+              {
+                model: Stock,
+                as: 'stocks',
+                attributes: ['quantity'],
+              }
+            ],
+            attributes: ['value'],
+          },
+        ],
+        attributes: ['variationType', 'variationValue', 'variationPrice'],
+      },
+    ],
+    attributes: ['id', 'name', 'price', 'description' , 'sellerId'],
+   })
 
     res.status(200).json(products);
   } catch (err) {
@@ -212,7 +214,35 @@ exports.getProductById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const product = await Product.findByPk(id);
+    const product = await Product.findByPk(id , {
+      include: [
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['image_url'],
+        },
+        {
+          model: ProductVariation,
+          as: 'productVariations',
+          include: [
+            {
+              model: ProductVariationOption,
+              as: 'productVariationOptions',
+              include: [
+                {
+                  model: Stock,
+                  as:'stocks',
+                  attributes: ['quantity'],
+                }
+              ],
+              attributes: ['value'],
+            },
+          ],
+          attributes: ['variationType', 'variationValue', 'variationPrice'],
+        },
+      ],
+      attributes: ['id', 'name', 'price', 'description', 'sellerId'],
+    });
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }

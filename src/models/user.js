@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const Product = require("./product");
 const User = sequelize.define(
   "users",
   {
@@ -48,5 +49,8 @@ const User = sequelize.define(
   await User.sync();
   console.log("User table created");
 })();
+
+User.hasMany(Product, { foreignKey: 'sellerId', as: 'products' });
+Product.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
 
 module.exports = User;

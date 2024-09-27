@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const Product = require("./product");
 
 const ProductImage = sequelize.define(
   "productImages",
@@ -20,6 +21,8 @@ const ProductImage = sequelize.define(
         model: "products",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     isPrimary: {
       type: DataTypes.BOOLEAN,

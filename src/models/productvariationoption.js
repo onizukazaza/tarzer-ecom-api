@@ -17,6 +17,8 @@ const ProductVariationOption = sequelize.define(
         model: ProductVariation,
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     value: {
       type: DataTypes.STRING,
@@ -31,12 +33,18 @@ const ProductVariationOption = sequelize.define(
   }
 );
 
-// ความสัมพันธ์
+
 ProductVariationOption.belongsTo(ProductVariation, {
   foreignKey: "productVariationId",
   as: "productVariation",
   onDelete: "CASCADE",
+  onUpdate: "CASCADE",
 });
+
+ProductVariation.hasMany(ProductVariationOption, {
+  foreignKey: "productVariationId",
+  as: "options",
+})
 
 
 module.exports = ProductVariationOption;

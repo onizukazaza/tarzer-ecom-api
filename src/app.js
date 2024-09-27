@@ -14,6 +14,7 @@ const ProductVariation = require('./models/productvariation');
 const ProductVariationOption = require('./models/productvariationoption');
 const Address = require('./models/useraddress');
 const Stock = require('./models/stock');
+const associations = require('./models/association');
 
 const app = express();
 

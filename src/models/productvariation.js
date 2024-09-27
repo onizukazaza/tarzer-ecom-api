@@ -22,9 +22,11 @@ const ProductVariation = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'products', 
+        model: 'Products', 
         key: 'id',
       },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
     variationPrice: {
       type: DataTypes.DECIMAL(10, 2),
@@ -38,5 +40,14 @@ const ProductVariation = sequelize.define(
   }
 );
 
+Product.hasMany(ProductVariation, {
+  foreignKey: 'productId',
+  as: 'variations',
+ });
+
+ProductVariation.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+})
 
 module.exports = ProductVariation;

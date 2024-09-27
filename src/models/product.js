@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 const User = require("./user");
-const ProductImage = require("./productImage");
-const ProductVariation = require("./productvariation");
+// const ProductImage = require("./productImage");
+// const ProductVariation = require("./productvariation");
 
 const Product = sequelize.define(
   "products",
@@ -28,9 +28,11 @@ const Product = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: User,
+        model: 'users',
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
 
   },
@@ -41,16 +43,30 @@ const Product = sequelize.define(
   }
 );
 
-Product.hasMany(ProductImage, {
-  foreignKey: 'productId',
-  as: 'images',
-});
+// Product.hasMany(ProductImage, {
+//   foreignKey: 'productId',
+//   as: 'images',
+//   onDelete: 'CASCADE',
+//   onUpdate: 'CASCADE',
+// });
 
-Product.hasMany(ProductVariation, {
-  foreignKey: 'productId',
-  as: 'variations',
-});
-Product.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
+// Product.hasMany(ProductVariation, {
+//   foreignKey: 'productId',
+//   as: 'variations',
+//   onDelete: 'CASCADE',
+//   onUpdate: 'CASCADE',
+// });
+// Product.belongsTo(User, { 
+//   foreignKey: 'sellerId', 
+//   as: 'seller',
+//   onDelete: 'CASCADE',
+//   onUpdate: 'CASCADE',
+  
+//   });
 
+  (async () => {
+    await sequelize.sync();
+    console.log("Product model created");
+  })()
 
 module.exports = Product;

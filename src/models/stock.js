@@ -19,6 +19,7 @@ const Stock = sequelize.define(
                 key: 'id'
             },
             onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         quantity:{
             type: DataTypes.INTEGER,
@@ -35,6 +36,7 @@ const Stock = sequelize.define(
         foreignKey: 'productVariationOptionId',
         as: 'productVariationOption',
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       });
       
       module.exports = Stock;
