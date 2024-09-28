@@ -3,6 +3,7 @@ const ProductImage = require("../models/productImage");
 const ProductVariation = require("../models/productvariation");
 const ProductVariationOption = require("../models/productvariationoption");
 const Stock = require("../models/stock");
+const User = require("../models/user");
 const sequelize = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -57,11 +58,14 @@ exports.addProduct = async (req, res) => {
             return res.status(400).json({ message: "Variation price must be provided." });
           }
 
+          const imageVariation = req.files[index] ? req.files[index].path : null;
+
           const productVariation = await ProductVariation.create({
             variationType: variation.type,
             variationValue: variation.value,
             productId: product.id,
             variationPrice: variation.price,
+            image_variation: imageVariation,
           });
 
           const stockQuantity = variation.quantity || 0;
@@ -216,6 +220,11 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(id , {
       include: [
+        {
+          model: User,
+          as:'seller',
+          attributes: ['id', 'username'],
+        },
         {
           model: ProductImage,
           as: 'images',

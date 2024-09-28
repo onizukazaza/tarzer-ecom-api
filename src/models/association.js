@@ -21,7 +21,7 @@ Product.hasMany(ProductVariation,{
 
 User.hasMany(Product, {
     foreignKey: 'sellerId',
-    as: 'ownerproducts',
+    as: 'seller',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
