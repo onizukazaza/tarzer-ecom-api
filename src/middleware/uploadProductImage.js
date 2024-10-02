@@ -3,7 +3,13 @@ const path = require('path');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/products/');
+        if(file.fieldname === 'productimages') {
+            cb(null, 'public/products/');
+        } else if(file.fieldname === 'variationimages') {
+            cb(null, 'public/uploads/variationImages/');
+        } else {
+            cb(new Error('Invalid file field name'), false);
+        }
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -31,4 +37,7 @@ const upload = multer({
 });
 
 
-module.exports = upload.array('productimages', 5);
+module.exports = upload.fields([
+    {name: 'productimages', maxCount: 5},
+    {name: 'variationimages', maxCount: 5}
+])

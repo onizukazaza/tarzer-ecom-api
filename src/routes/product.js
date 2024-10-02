@@ -3,6 +3,7 @@ const productsController = require("../controllers/productcontroller");
 const authenticate = require("../middleware/authenticate");
 const authorize = require("../middleware/authorize");
 const uploadProductImage = require("../middleware/uploadProductImage");
+
 const router = express.Router();
 
 router.post(
