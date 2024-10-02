@@ -23,13 +23,13 @@ exports.addProduct = async (req, res) => {
   const sellerId = req.user.id;
 
   try {
-    if (!req.files || req.files.length === 0) {
+    if (!req.files || !req.files.productimages || req.files.productimages.length === 0) {
       return res
         .status(400)
         .json({ message: "Product must have at least one image" });
     }
 
-    const parsedVariations = JSON.parse(variations);
+    const parsedVariations = variations ? JSON.parse(variations): [];
 
     const product = await Product.create({
       name,
@@ -38,7 +38,7 @@ exports.addProduct = async (req, res) => {
       sellerId,
     });
    
-    const images = req.files.map((file) => ({
+    const images = req.files.productimages.map((file) => ({
       image_url: file.path,
       productId: product.id,
     }));
@@ -52,13 +52,14 @@ exports.addProduct = async (req, res) => {
 
     if (parsedVariations && Array.isArray(parsedVariations)) {
       await Promise.all(
-        parsedVariations.map(async (variation) => {
+        parsedVariations.map(async (variation , index) => {
 
           if (!variation.price) {
             return res.status(400).json({ message: "Variation price must be provided." });
           }
 
-          const imageVariation = req.files[index] ? req.files[index].path : null;
+          const imageVariation = req.files.variationimages && req.files.variationimages.length > index
+          ? req.files.variationimages[index].path : null;
 
           const productVariation = await ProductVariation.create({
             variationType: variation.type,
@@ -67,10 +68,10 @@ exports.addProduct = async (req, res) => {
             variationPrice: variation.price,
             image_variation: imageVariation,
           });
-
+          
           const stockQuantity = variation.quantity || 0;
           let variationOptions = [];
-
+          
           if (variation.options && Array.isArray(variation.options) && variation.options.length > 0) {
             variationOptions = await ProductVariationOption.bulkCreate(
               variation.options.map((option) => ({
