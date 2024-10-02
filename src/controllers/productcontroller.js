@@ -299,40 +299,72 @@ exports.updateProduct = async (req, res) => {
     }
 
     if (variations && variations.length > 0) {
-      
-      await ProductVariation.destroy({ where: { productId } });
-
-
-        await Promise.all(
+      await Promise.all(
         variations.map(async (variation) => {
-          const productVariation = await ProductVariation.create({
-            variationType: variation.type,
-            variationValue: variation.value,
-            productId,
-            variationPrice: variation.price,
-          });
-
-          if (variation.options && variation.options.length > 0) {
-            const variationOptions = variation.options.map((option) => ({
-              productVariationId: productVariation.id,
-              value: option.value,
-            }));
-            const createOptions = await ProductVariationOption.bulkCreate(variationOptions);
-
+          if (variation.id) {
+            const existingVariation = await ProductVariation.findOne({
+              where: { id: variation.id , productId }
+          })
+          if (existingVariation) {
+            await existingVariation.update({
+              variationType: variation.type,
+              variationValue: variation.value,
+              variationPrice: variation.price,
+            })
             if (variation.options && variation.options.length > 0) {
               await Promise.all(
-                createOptions.map(async (option , index) => {
-                  await Stock.upsert({
-                    ProductVariationOptionId: option.id,
-                    quantity: variation.options[index].stock || 0,
-                  });
+                variation.options.map(async (option , index) => {
+                  const existingOption = await ProductVariationOption.findOne({
+                    where: { id: option.id }
+                  })
+                  if (existingOption) {
+                    await existingOption.update({ value: option.value });
+
+                    const existingStock = await Stock.findOne({
+                      where: { ProductVariationOptionId: existingOption.id }
+                    })
+                    if (existingStock) {
+                      await existingStock.update({
+                         quantity: variation.options[index].stock || existingStock.quantity, 
+                        });
+                    }else {
+                      await Stock.create({
+                        quantity: variation.options[index].stock || 0,
+                        ProductVariationOptionId: existingOption.id,
+                      });
+                    }
+                  }
                 })
               )
             }
           }
-        })
-      );
+    } else {
+      const productVariation = await ProductVariation.create({
+        variationType: variation.type,
+        variationValue: variation.value,
+        productId,
+        variationPrice: variation.price,
+      })
+      if (variation.options && variation.options.length > 0) {
+        const variationOptions = variation.options.map((option) => ({
+          productVariationId: productVariation.id,
+          value: option.value,
+        }))
+        const createOptions = await ProductVariationOption.bulkCreate(variationOptions);
+
+        await Promise.all(
+          createOptions.map(async (option) => {
+            await Stock.create({
+              ProductVariationOptionId: option.id,
+              quantity: variation.option[index].stock || 0,
+            });
+          })
+        );
+      }
     }
+  })
+)
+}
     res.status(200).json({ message: "Product updated successfully", product });
   } catch (error) {
     console.error("Error updating product:", error);

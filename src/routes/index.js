@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const usercontroller = require('../controllers/usercontroller');
+const usercontroller = require('../controllers/authcontroller');
 const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
 // const uploadProfileImage = require('../middleware/uploadProductImage');
