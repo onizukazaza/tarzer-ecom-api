@@ -2,9 +2,11 @@ const jwt = require('jsonwebtoken');
 const TokenBlacklist = require('../models/TokenBlacklist')
 
 const authenticate = async (req, res, next) => {
-    const token = req.header('Authorization') && req.header('Authorization').startsWith('Bearer ') 
-        ? req.header('Authorization').split(' ')[1] 
-        : null;
+    const authHeader = req.header('Authorization')
+    const token = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.split(' ')[1] 
+    : null;
+
 
     if (!token) {
         return res.status(401).json({ message: 'Access denied' });
@@ -21,6 +23,10 @@ const authenticate = async (req, res, next) => {
         next(); 
     } catch (err) {
         console.error('Token verification error:', err);
+
+        if(err.name === 'TokenExpiredError'){
+            return res.status(403).json({ message: 'Access denied: Token expired' });
+        }
         return res.status(400).json({ message: 'Invalid token' });
     }
 };

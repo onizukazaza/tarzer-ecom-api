@@ -1,8 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const User = require("./user");
-// const ProductImage = require("./productImage");
-// const ProductVariation = require("./productvariation");
 
 const Product = sequelize.define(
   "products",
@@ -43,26 +40,7 @@ const Product = sequelize.define(
   }
 );
 
-// Product.hasMany(ProductImage, {
-//   foreignKey: 'productId',
-//   as: 'images',
-//   onDelete: 'CASCADE',
-//   onUpdate: 'CASCADE',
-// });
 
-// Product.hasMany(ProductVariation, {
-//   foreignKey: 'productId',
-//   as: 'variations',
-//   onDelete: 'CASCADE',
-//   onUpdate: 'CASCADE',
-// });
-// Product.belongsTo(User, { 
-//   foreignKey: 'sellerId', 
-//   as: 'seller',
-//   onDelete: 'CASCADE',
-//   onUpdate: 'CASCADE',
-  
-//   });
 
   (async () => {
     await sequelize.sync();
