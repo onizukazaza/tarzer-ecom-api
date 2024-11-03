@@ -8,7 +8,7 @@ const sequelize = require("../config/database");
 const { Op } = require("sequelize");
 
 exports.addProduct = async (req, res) => {
-  const { name, price, description, variations } = req.body;
+  const { name, price, description, variations , gender } = req.body;
 
   if (!req.user || !req.user.id) {
     return res.status(400).json({ message: "User not authenticated" });
@@ -31,11 +31,18 @@ exports.addProduct = async (req, res) => {
 
     const parsedVariations = variations ? JSON.parse(variations): [];
 
+    const validGenders = ["male", "female"];
+    if(!validGenders.includes(gender)) {
+      return res.status(400).json({ message: "Invalid gender" });
+    }
+
+
     const product = await Product.create({
       name,
       price,
       description,
       sellerId,
+      gender,
     });
    
     const images = req.files.productimages.map((file) => ({
@@ -224,7 +231,7 @@ exports.getProductById = async (req, res) => {
         {
           model: User,
           as:'seller',
-          attributes: ['id', 'username'],
+          attributes: ['id', 'username' , ],
         },
         {
           model: ProductImage,
@@ -251,7 +258,7 @@ exports.getProductById = async (req, res) => {
           attributes: ['variationType', 'variationValue', 'variationPrice'],
         },
       ],
-      attributes: ['id', 'name', 'price', 'description', 'sellerId'],
+      attributes: ['id', 'name', 'price', 'description', 'gender', 'sellerId'],
     });
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -369,48 +376,5 @@ exports.updateProduct = async (req, res) => {
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ message: "Server error while updating product" });
-  }
-};
-
-exports.addProductImage = async (req, res) => {
-  const { productId } = req.params;
-
-  if (!req.user || !req.user.id) {
-    return res.status(400).json({ message: "User not authenticated" });
-  }
-
-  if (req.user.role !== "admin" && req.user.role !== "seller") {
-    return res
-      .status(403)
-      .json({ message: "Access denied: Insufficient role" });
-  }
-
-  try {
-    const existingImages = await ProductImage.findAll({
-      where: { ProductId: productId },
-    });
-
-    if (existingImages.length + req.files.length >= 5) {
-      return res
-        .status(400)
-        .json({ message: "Cannot add more than 5 images to a product" });
-    }
-    const productImages = await Promise.all(
-      req.files.map((file) =>
-        ProductImage.create({
-          image_url: file.path,
-          ProductId: productId,
-          isPrimary: false,
-        })
-      )
-    );
-    res
-      .status(201)
-      .json({ message: "Product image added succesfully", productImages });
-  } catch (error) {
-    console.error("Error adding product image:", error);
-    res
-      .status(500)
-      .json({ message: "Server error while adding product image" });
   }
 };

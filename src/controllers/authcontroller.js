@@ -125,3 +125,35 @@ exports.refreshToken = async (req, res) => {
       .json({ message: "Token expired", error: err.message });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'username', 'email', 'role'],
+    });
+
+    res.status(200).json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Server error while fetching users" });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  const { id } = req.params; 
+
+  try {
+    const user = await User.findByPk(id, {
+      attributes: ['id', 'username', 'email', 'role'], 
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" }); 
+    }
+
+    res.status(200).json(user); 
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    res.status(500).json({ message: "Server error while fetching user" });
+  }
+};

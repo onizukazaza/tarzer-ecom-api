@@ -15,7 +15,8 @@ router.post('/refresh-token', authcontroller.refreshToken)
 router.get('/protected', authenticate, (req, res) => {
     res.json({ message: 'This is a protected route', user: req.user });
 });
-
+router.get('/users', authcontroller.getAllUsers);
+router.get('/users/:id',authcontroller.getUserById);
 router.post('/logout', authenticate, async (req, res) => {
     
     const  authHeader = req.headers['authorization'];

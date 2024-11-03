@@ -31,7 +31,10 @@ const Product = sequelize.define(
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
-
+    gender: {
+      type: DataTypes.ENUM('male', 'female'),
+      allowNull: false, 
+    },
   },
   {
     timestamps: true,

@@ -16,6 +16,7 @@ const Address = require('./models/useraddress');
 const Stock = require('./models/stock');
 const associations = require('./models/association');
 
+
 const app = express();
 
 // Middleware
@@ -27,6 +28,7 @@ app.use("/products", productRoutes);
 app.use("/user", routes);
 app.use("/addresses", addressRoutes);
 app.use("/", routes);
+
 
 (async () => {
   try {

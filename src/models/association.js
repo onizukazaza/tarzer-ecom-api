@@ -5,52 +5,72 @@ const ProductVariationOption = require('./productvariationoption');
 const Stock = require('./stock');
 const User = require('./user');
 
+
+
 Product.hasMany(ProductImage, { 
     foreignKey: 'productId',
-    as: 'images',
+    as: 'images', 
     onDelete: 'CASCADE',
-    onUpdate: 'CASCADE', 
-})
+    onUpdate: 'CASCADE',  
+});
 
-Product.hasMany(ProductVariation,{
+
+Product.hasMany(ProductVariation, {
     foreignKey: 'productId',
-    as: 'productVariations',
+    as: 'productVariations', 
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-})
+});
+
 
 User.hasMany(Product, {
     foreignKey: 'sellerId',
-    as: 'seller',
+    as: 'seller', 
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-})
+});
+
 
 ProductVariation.hasMany(ProductVariationOption, {
     foreignKey: 'productVariationId',
-    as: 'productVariationOptions',
+    as: 'productVariationOptions', 
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE', 
-})
+});
+
 
 ProductVariationOption.hasMany(Stock, {
     foreignKey: 'productVariationOptionId',
-    as: 'stocks',
+    as: 'stocks', 
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-})
+});
+
 
 Stock.belongsTo(ProductVariationOption, {
     foreignKey: 'productVariationOptionId',
-    as: 'stockproductVariationOption',
+    as: 'stockproductVariationOption', 
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',  
-})
+});
+
+
+
+
+ProductVariation.belongsTo(Product, {
+    foreignKey: 'productId',
+    as: 'product', 
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+
+
 module.exports = {
     Product,
     ProductImage,
     ProductVariation,
     ProductVariationOption,
     Stock,
-    User, 
-}
+    User,
+
+};
